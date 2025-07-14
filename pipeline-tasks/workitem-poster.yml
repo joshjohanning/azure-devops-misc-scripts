@@ -1,0 +1,11 @@
+- bash: | # Access Token should need Build Read, Work Item Read & Write, Member Entitlement Management Read
+    curl -u test@test.com:access-token-xxxxxxxxxxx https://dev.azure.com/{organisation}/{project}/_apis/build/builds/$(build.buildId)/workitems?api-version=6.0 | jq '.value[] | .id' |
+    while IFS=$"\n" read -r c; do
+      wid=$(echo $c | tr -dc '0-9')
+      echo
+      echo Posting status to work item: $wid
+      echo
+      curl -u test@test.com:access-token-xxxxxxxxxxx https://dev.azure.com/{organisation}/{project}/_apis/wit/workItems/$wid/comments?api-version=6.0-preview.3 -X POST --data '{"text": "Build $(Build.BuildNumber) completed with status: $(Agent.JobStatus)"}' -H 'Content-Type: application/json'
+      echo
+    done
+  displayName: 'Post status to work items'
